@@ -102,7 +102,28 @@ having Avg_Balance > 100000
 order by duration, status;
 
 
--- partitions
+-- partitions, notes 
+select loan_id, account_id, amount, payments, duration, amount-payments as "Balance",
+avg(amount-payments) over (partition by duration) as Avg_Balance;
+-- average of balance (amount minus payments) for each duartion (line above)
+-- similiar to 
+-- select avg, form, duration, avg(amount-payments) as balance
+-- from bank.loan
+-- group by duration; -- but gives error because you didnt mention avg und form
+-- Another example:
+-- select amount, payments, duration,
+-- avg(amount-payments) over (partition by duration) as Avg_Balance
+-- over duration (groups all duration 12 and display av for duration= 12,etc. 
+first_value(amount-payments) over (partition by duration) as Avg_Balance1,
+last_value(amount-payments) over (partition by duration) as Avg_Balance2,
+lag(amount-payments,2) over (partition by duration) as Avg_Balance3,
+lead(amount-payments,2) over (partition by duration) as Avg_Balance4,
+nth_value(amount-payments,2) over (partition by duration) as Avg_Balance5,
+rank() over(order by duration)
+from bank.loan
+where amount > 100000
+
+-- partitioning script original
 select loan_id, account_id, amount, payments, duration, amount-payments as "Balance",
 avg(amount-payments) over (partition by duration) as Avg_Balance,
 first_value(amount-payments) over (partition by duration) as Avg_Balance1,
